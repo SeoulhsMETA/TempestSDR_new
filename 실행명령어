@@ -1,7 +1,7 @@
 .\.venv\Scripts\python.exe .\sdr_check.py
 
 
-
+.\.venv\Scripts\Activate.ps1
 
 
 
