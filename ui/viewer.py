@@ -46,7 +46,7 @@ class SpectrumViewer:
 		self.ax_info.axis('off')
 
 		self.freq_axis = np.linspace(-self.sample_rate_hz/2, self.sample_rate_hz/2, self.fft_size)
-		self.line_spectrum, = self.ax_spectrum.plot(self.freq_axis, np.zeros(self.fft_size), 'b-', linewidth=1)
+		self.line_spectrum, = self.ax_spectrum.plot(self.freq_axis, np.zeros(self.fft_size), 'b-', linewidth=0.2) #그래프 굵기 조정
 		self.text_info = self.ax_info.text(
 			0.02, 0.8, '', transform=self.ax_info.transAxes,
 			fontsize=10, verticalalignment='top',
@@ -54,6 +54,9 @@ class SpectrumViewer:
 		)
 
 		plt.tight_layout()
+
+		# 파란 선(스펙트럼) 자체를 아래로 보이게 할 오프셋(dB)
+		self._spectrum_y_offset_db = -5.0  # 더/덜 내리고 싶으면 값만 조정
 
 		# 입력 위젯
 		ax_box = self.fig.add_axes([0.55, 0.04, 0.25, 0.06])
@@ -90,7 +93,8 @@ class SpectrumViewer:
 
 	def update(self, psd: np.ndarray, info_text: str) -> None:
 		"""스펙트럼 선과 정보 텍스트를 최신 값으로 갱신."""
-		self.line_spectrum.set_ydata(psd)
+		# 그래프 박스는 그대로 두고, 선만 dB 오프셋을 적용해 하향 이동
+		self.line_spectrum.set_ydata(psd + self._spectrum_y_offset_db)
 		self.text_info.set_text(info_text)
 		self.fig.canvas.draw_idle()
 
