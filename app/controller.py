@@ -30,12 +30,22 @@ class SDRController:
 									 center_freq_hz=self.center_freq_hz,
 									 fft_size=self.spec.config.fft_size)
 		self.viewer.set_on_apply_center(self._apply_center_from_ui)
+		self.viewer.set_on_apply_resolution(self._apply_resolution_from_ui)
+		self.target_resolution = (1920, 1080)
 
 	def _apply_center_from_ui(self, new_center_hz: float) -> None:
 		"""UI에서 변경된 중심 주파수를 장치에 반영."""
 		self.center_freq_hz = new_center_hz
 		if self.device.is_open:
 			self.device.center_freq = self.center_freq_hz
+
+	def _apply_resolution_from_ui(self, wh: tuple[int, int]) -> None:
+		"""실험 대상 화면 해상도(W,H) 변경을 저장.
+
+		현재 파이프라인은 해상도값을 표시/로그 등에 활용할 수 있습니다.
+		나중에 해상도 기반 후처리를 추가하기 쉬운 구조입니다.
+		"""
+		self.target_resolution = wh
 
 	def start(self) -> None:
 		"""장치를 초기화하고 애니메이션 루프를 시작."""
@@ -64,6 +74,7 @@ class SDRController:
 				f"평균 전력: {power_db:.2f} dBFS\n"
 				f"상위 피크:\n"
 			)
+			info_text += f"해상도: {self.target_resolution[0]}x{self.target_resolution[1]}\n"
 			for i, (f, p) in enumerate(zip(peak_freqs, peaks_val)):
 				info_text += f"  {i+1}. {f/1e3:+.1f} kHz ({p:.1f} dB)\n"
 			self.viewer.update(psd, info_text)

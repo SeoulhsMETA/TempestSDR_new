@@ -42,6 +42,7 @@ class SpectrumViewer:
 		self.ax_spectrum.set_ylabel('신호 세기 (dB)')
 		self.ax_spectrum.grid(True, alpha=0.3)
 		self.ax_spectrum.set_ylim(-80, 0)
+		self._default_ylim = (-80, 0)
 
 		self.ax_info.axis('off')
 
@@ -57,16 +58,27 @@ class SpectrumViewer:
 
 		# 파란 선(스펙트럼) 자체를 아래로 보이게 할 오프셋(dB)
 		self._spectrum_y_offset_db = -5.0  # 더/덜 내리고 싶으면 값만 조정
+		self._default_y_offset_db = 0.0    # Reset 시 복원값
 
-		# 입력 위젯
+		# 입력 위젯: Center MHz
 		ax_box = self.fig.add_axes([0.55, 0.04, 0.25, 0.06])
 		self.center_box = TextBox(ax_box, 'Center MHz: ', initial=f"{self.center_freq_hz/1e6:.3f}")
-		ax_btn = self.fig.add_axes([0.82, 0.04, 0.10, 0.06])
+		ax_btn = self.fig.add_axes([0.82, 0.04, 0.08, 0.06])
 		self.apply_button = Button(ax_btn, 'Apply')
+
+		# 입력 위젯: Target Resolution (WxH)
+		ax_res = self.fig.add_axes([0.12, 0.04, 0.25, 0.06])
+		self.res_box = TextBox(ax_res, 'Res WxH: ', initial="1920x1080")
+
+		# Reset 버튼: 뷰 복원
+		ax_reset = self.fig.add_axes([0.91, 0.04, 0.07, 0.06])
+		self.reset_button = Button(ax_reset, 'Reset')
 
 		self._on_apply_center: callable | None = None
 		self.center_box.on_submit(self._submit_center)
 		self.apply_button.on_clicked(lambda _evt: self._submit_center(self.center_box.text))
+		self.res_box.on_submit(self._submit_resolution)
+		self.reset_button.on_clicked(self._on_reset_view)
 
 	def _set_title(self) -> None:
 		"""윈도우 제목을 현재 중심 주파수로 갱신."""
@@ -79,6 +91,10 @@ class SpectrumViewer:
 		"""외부(컨트롤러)에서 전달된 콜백을 저장."""
 		self._on_apply_center = handler
 
+	def set_on_apply_resolution(self, handler: callable) -> None:
+		"""해상도 변경 콜백 저장 (WxH)."""
+		self._on_apply_resolution = handler
+
 	def _submit_center(self, text: str) -> None:
 		"""입력값(MHz)을 검증/반영하고 콜백으로 알려줌."""
 		try:
@@ -90,6 +106,24 @@ class SpectrumViewer:
 			self.fig.canvas.draw_idle()
 		except Exception:
 			self.center_box.set_val(f"{self.center_freq_hz/1e6:.3f}")
+
+	def _submit_resolution(self, text: str) -> None:
+		"""'1920x1080' 또는 '1920 1080' 형태를 파싱하여 콜백에 전달."""
+		try:
+			clean = text.lower().replace(' ', 'x').replace('*', 'x')
+			w_str, h_str = [t for t in clean.split('x') if t][:2]
+			w, h = int(w_str), int(h_str)
+			if self._on_apply_resolution:
+				self._on_apply_resolution((w, h))
+		except Exception:
+			# 형식 오류 시 기본값으로 되돌림
+			self.res_box.set_val("1920x1080")
+
+	def _on_reset_view(self, _evt) -> None:
+		"""축 범위와 선 오프셋을 기본 상태로 복원."""
+		self.ax_spectrum.set_ylim(*self._default_ylim)
+		self._spectrum_y_offset_db = self._default_y_offset_db
+		self.fig.canvas.draw_idle()
 
 	def update(self, psd: np.ndarray, info_text: str) -> None:
 		"""스펙트럼 선과 정보 텍스트를 최신 값으로 갱신."""
