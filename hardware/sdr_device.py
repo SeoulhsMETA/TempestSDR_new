@@ -29,6 +29,9 @@ class RtlSdrDevice:
 	def __init__(self) -> None:
 		self._dev = None
 
+
+		
+
 	def open(self) -> None:
 		"""장치를 초기화하여 연결합니다."""
 		if RtlSdr is None:
@@ -40,6 +43,10 @@ class RtlSdrDevice:
 		"""장치가 열려 있는지 여부."""
 		return self._dev is not None
 
+
+
+
+
 	@property
 	def sample_rate(self) -> float:
 		"""현재 샘플링 레이트(Hz)."""
@@ -49,6 +56,10 @@ class RtlSdrDevice:
 	def sample_rate(self, value: float) -> None:
 		"""샘플링 레이트(Hz)를 설정."""
 		self._dev.sample_rate = float(value)  # type: ignore[union-attr]
+
+
+
+
 
 	@property
 	def center_freq(self) -> float:
@@ -60,6 +71,10 @@ class RtlSdrDevice:
 		"""중심 주파수(Hz)를 설정."""
 		self._dev.center_freq = float(value)  # type: ignore[union-attr]
 
+
+
+
+
 	@property
 	def gain(self) -> _t.Union[float, str]:
 		"""이득(dB) 또는 'auto'."""
@@ -70,11 +85,19 @@ class RtlSdrDevice:
 		"""이득을 설정."""
 		self._dev.gain = value  # type: ignore[union-attr]
 
+
+
+
+
+
 	def read_samples(self, n: int):
 		"""n개 샘플을 복소수 배열로 반환합니다."""
 		if self._dev is None:
 			raise RuntimeError("장치가 열려있지 않습니다. open()을 먼저 호출하세요.")
 		return self._dev.read_samples(n)
+
+
+
 
 	def close(self) -> None:
 		"""장치 연결을 해제합니다."""

@@ -60,18 +60,18 @@ class SpectrumViewer:
 		self._spectrum_y_offset_db = -5.0  # 더/덜 내리고 싶으면 값만 조정
 		self._default_y_offset_db = 0.0    # Reset 시 복원값
 
-		# 입력 위젯: Center MHz
-		ax_box = self.fig.add_axes([0.55, 0.04, 0.25, 0.06])
-		self.center_box = TextBox(ax_box, 'Center MHz: ', initial=f"{self.center_freq_hz/1e6:.3f}")
-		ax_btn = self.fig.add_axes([0.82, 0.04, 0.08, 0.06])
-		self.apply_button = Button(ax_btn, 'Apply')
-
-		# 입력 위젯: Target Resolution (WxH)
-		ax_res = self.fig.add_axes([0.12, 0.04, 0.25, 0.06])
+		# 입력 위젯: Target Resolution (WxH) - 오른쪽으로 이동
+		ax_res = self.fig.add_axes([0.40, 0.04, 0.25, 0.06])
 		self.res_box = TextBox(ax_res, 'Res WxH: ', initial="1920x1080")
 
-		# Reset 버튼: 뷰 복원
-		ax_reset = self.fig.add_axes([0.91, 0.04, 0.07, 0.06])
+		# 입력 위젯: Center MHz - 더 오른쪽으로 이동
+		ax_box = self.fig.add_axes([0.67, 0.04, 0.25, 0.06])
+		self.center_box = TextBox(ax_box, 'Center MHz: ', initial=f"{self.center_freq_hz/1e6:.3f}")
+		ax_btn = self.fig.add_axes([0.94, 0.04, 0.08, 0.06])
+		self.apply_button = Button(ax_btn, 'Apply')
+
+		# Reset 버튼: 뷰 복원 - 위치 조정
+		ax_reset = self.fig.add_axes([0.85, 0.04, 0.07, 0.06])
 		self.reset_button = Button(ax_reset, 'Reset')
 
 		self._on_apply_center: callable | None = None
