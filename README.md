@@ -5,7 +5,7 @@ flowchart TD
   A["User Input<br/>Center MHz TextBox"] -->|change event| B["UI: SpectrumViewer"]
   B -->|callback| C["App: SDRController"]
   C -->|apply center_freq| D["HW: RtlSdrDevice"]
-  D -->|read_samples(N)| C
+  D -->|read samples| C
   C -->|samples| E["DSP: SpectrumAnalyzer"]
   E -->|PSD + peaks| C
   C -->|psd + info_text| B
