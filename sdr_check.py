@@ -16,8 +16,7 @@ from app.controller import SDRController
 # ============================================================================
 # 프로그램 실행 조건
 # ============================================================================
-# 이 파일을 직접 실행할 때만 main() 함수를 호출합니다
-# 다른 파일에서 import할 때는 main()이 실행되지 않습니다
+# 이 파일을 직접 실행할 때만 실행됩니다. 모듈로 임포트되면 실행되지 않습니다.
 if __name__ == "__main__":
 	center_freq_hz = float(sys.argv[1]) if len(sys.argv) > 1 else 99.9e6
 	sample_rate_hz = float(sys.argv[2]) if len(sys.argv) > 2 else 2.4e6

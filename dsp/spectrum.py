@@ -35,7 +35,11 @@ class SpectrumAnalyzer:
 
 	def build_freq_axis(self, sample_rate_hz: float) -> np.ndarray:
 		"""샘플레이트에 맞는 대칭 주파수 축 생성."""
-		return np.linspace(-sample_rate_hz/2, sample_rate_hz/2, self.config.fft_size)
+		return np.linspace(
+			-sample_rate_hz / 2,
+			sample_rate_hz / 2,
+			self.config.fft_size,
+		)
 
 	def find_topk_peaks(self, psd: np.ndarray, k: int = 3):
 		"""상위 k개 피크 인덱스와 값 반환."""

@@ -35,19 +35,40 @@ class SpectrumViewer:
 			2, 1, figsize=(12, 8), gridspec_kw={'height_ratios': [3, 1]}
 		)
 		self.fig.subplots_adjust(bottom=0.18)
+		# 스펙트럼 표시 관련 상수/상태는 사용 전에 먼저 정의
+		self.LINE_WIDTH = 0.2                        # 스펙트럼 선 굵기
+		self.DEFAULT_YLIM = (-80, 0)                 # 기본 Y축 범위(dB)
+		self.DEFAULT_LINE_OFFSET_DB = 0.0            # Reset 시 복원 오프셋(dB)
+		self.CURRENT_LINE_OFFSET_DB = -5.0           # 표시용 오프셋(dB, 음수면 아래로)
+		self._spectrum_y_offset_db = self.CURRENT_LINE_OFFSET_DB
+		self._default_y_offset_db = self.DEFAULT_LINE_OFFSET_DB
 		self._set_title()
 
 		self.ax_spectrum.set_title('실시간 주파수 스펙트럼 (FFT)')
 		self.ax_spectrum.set_xlabel('주파수 오프셋 (Hz)')
 		self.ax_spectrum.set_ylabel('신호 세기 (dB)')
 		self.ax_spectrum.grid(True, alpha=0.3)
-		self.ax_spectrum.set_ylim(-80, 0)
-		self._default_ylim = (-80, 0)
+		self.ax_spectrum.set_ylim(*self.DEFAULT_YLIM)
+		self._default_ylim = self.DEFAULT_YLIM
 
 		self.ax_info.axis('off')
 
-		self.freq_axis = np.linspace(-self.sample_rate_hz/2, self.sample_rate_hz/2, self.fft_size)
-		self.line_spectrum, = self.ax_spectrum.plot(self.freq_axis, np.zeros(self.fft_size), 'b-', linewidth=0.2) #그래프 굵기 조정
+		# 스펙트럼 X축 생성
+		self.freq_axis = np.linspace(
+			-self.sample_rate_hz / 2,
+			self.sample_rate_hz / 2,
+			self.fft_size,
+		)
+
+		# 스펙트럼 선 초기화 (선 굵기: self.LINE_WIDTH)
+		self.line_spectrum, = self.ax_spectrum.plot(
+			self.freq_axis,
+			np.zeros(self.fft_size),
+			"b-",
+			linewidth=self.LINE_WIDTH,
+		)
+
+
 		self.text_info = self.ax_info.text(
 			0.02, 0.8, '', transform=self.ax_info.transAxes,
 			fontsize=10, verticalalignment='top',
@@ -56,22 +77,28 @@ class SpectrumViewer:
 
 		plt.tight_layout()
 
-		# 파란 선(스펙트럼) 자체를 아래로 보이게 할 오프셋(dB)
-		self._spectrum_y_offset_db = -5.0  # 더/덜 내리고 싶으면 값만 조정
-		self._default_y_offset_db = 0.0    # Reset 시 복원값
+		# 위젯 위치 상수(figure 좌표): 한 곳에서 관리하면 가독성과 유지보수가 쉬움
+		self.UI_POS = {
+			'res':   [0.40, 0.04, 0.25, 0.06],  # 해상도 입력칸 위치
+			'center': [0.67, 0.04, 0.25, 0.06],  # Center MHz 입력칸 위치
+			'apply': [0.94, 0.04, 0.08, 0.06],  # Apply 버튼 위치
+			'reset': [0.85, 0.04, 0.07, 0.06],  # Reset 버튼 위치
+		}
 
 		# 입력 위젯: Target Resolution (WxH) - 오른쪽으로 이동
-		ax_res = self.fig.add_axes([0.40, 0.04, 0.25, 0.06])
+		ax_res = self.fig.add_axes(self.UI_POS['res'])
 		self.res_box = TextBox(ax_res, 'Res WxH: ', initial="1920x1080")
 
+
 		# 입력 위젯: Center MHz - 더 오른쪽으로 이동
-		ax_box = self.fig.add_axes([0.67, 0.04, 0.25, 0.06])
+		ax_box = self.fig.add_axes(self.UI_POS['center'])
 		self.center_box = TextBox(ax_box, 'Center MHz: ', initial=f"{self.center_freq_hz/1e6:.3f}")
-		ax_btn = self.fig.add_axes([0.94, 0.04, 0.08, 0.06])
+		ax_btn = self.fig.add_axes(self.UI_POS['apply'])
 		self.apply_button = Button(ax_btn, 'Apply')
 
+
 		# Reset 버튼: 뷰 복원 - 위치 조정
-		ax_reset = self.fig.add_axes([0.85, 0.04, 0.07, 0.06])
+		ax_reset = self.fig.add_axes(self.UI_POS['reset'])
 		self.reset_button = Button(ax_reset, 'Reset')
 
 		self._on_apply_center: callable | None = None
@@ -107,6 +134,7 @@ class SpectrumViewer:
 		except Exception:
 			self.center_box.set_val(f"{self.center_freq_hz/1e6:.3f}")
 
+
 	def _submit_resolution(self, text: str) -> None:
 		"""'1920x1080' 또는 '1920 1080' 형태를 파싱하여 콜백에 전달."""
 		try:
@@ -121,7 +149,7 @@ class SpectrumViewer:
 
 	def _on_reset_view(self, _evt) -> None:
 		"""축 범위와 선 오프셋을 기본 상태로 복원."""
-		self.ax_spectrum.set_ylim(*self._default_ylim)
+		self.ax_spectrum.set_ylim(*self.DEFAULT_YLIM)
 		self._spectrum_y_offset_db = self._default_y_offset_db
 		self.fig.canvas.draw_idle()
 
