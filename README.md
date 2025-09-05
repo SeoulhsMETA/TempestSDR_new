@@ -2,42 +2,42 @@
 
 ```mermaid
 flowchart TD
-  A["사용자 입력\nCenter MHz TextBox"] -->|변경 이벤트| B["UI: SpectrumViewer"]
-  B -->|콜백| C["App: SDRController"]
-  C -->|center_freq 적용| D["HW: RtlSdrDevice"]
+  A["User Input<br/>Center MHz TextBox"] -->|change event| B["UI: SpectrumViewer"]
+  B -->|callback| C["App: SDRController"]
+  C -->|apply center_freq| D["HW: RtlSdrDevice"]
   D -->|read_samples(N)| C
-  C -->|샘플 전달| E["DSP: SpectrumAnalyzer"]
-  E -->|PSD 계산·피크 검출| C
+  C -->|samples| E["DSP: SpectrumAnalyzer"]
+  E -->|PSD + peaks| C
   C -->|psd + info_text| B
-  B -->|화면 업데이트| F["Figure/Axes"]
+  B -->|update display| F["Figure/Axes"]
 
-  subgraph "UI 계층"
+  subgraph "UI Layer"
     B
     F
   end
-  subgraph "App 계층"
+  subgraph "App Layer"
     C
   end
-  subgraph "DSP 계층"
+  subgraph "DSP Layer"
     E
   end
-  subgraph "Hardware 계층"
+  subgraph "Hardware Layer"
     D
   end
 ```
 
 ```mermaid
 flowchart LR
-  S["샘플 samples"] --> W["윈도우 적용\nHanning"]
+  S["Samples"] --> W["Window<br/>Hanning"]
   W --> F["FFT"]
   F --> SH["fftshift"]
-  SH --> A["절댓값"]
-  A --> N["정규화 / sqrt(N)"]
-  N --> L["log10 → dB 변환"]
+  SH --> A["Abs"]
+  A --> N["Normalize<br/>/ sqrt(N)"]
+  N --> L["log10 → dB"]
   L --> PSD["PSD (dB)"]
-  PSD --> P["상위 k개 피크 검출"]
+  PSD --> P["Top k Peaks"]
 
-  subgraph "DSP 파이프라인"
+  subgraph "DSP Pipeline"
     W --> F --> SH --> A --> N --> L --> PSD --> P
   end
 ```
